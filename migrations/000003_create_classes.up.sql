@@ -4,8 +4,7 @@ CREATE TABLE classes(
     description TEXT,
     teacher_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    
-)
+);
 
 CREATE INDEX idx_classes_teacher_id ON classes(teacher_id);
 CREATE TABLE class_members (
