@@ -13,6 +13,6 @@ CREATE TABLE class_members (
     student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (class_id, student_id)
-)
+);
 
 CREATE INDEX idxclass_members_student_id ON class_members(student_id);

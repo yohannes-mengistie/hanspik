@@ -20,6 +20,7 @@ import (
 	"github.com/yohannes/chines-backend/internal/practice"
 	"github.com/yohannes/chines-backend/internal/server"
 	"github.com/yohannes/chines-backend/internal/user"
+	"github.com/yohannes/chines-backend/migrations"
 )
 
 func main() {
@@ -30,6 +31,9 @@ func main() {
 		log.Fatalf("database: %v", err)
 	}
 	defer db.Close()
+	if err := migrations.Up(context.Background(), db); err != nil {
+		log.Fatalf("migrations: %v", err)
+	}
 	userRepo := user.NewRepository(db)
 	authRepo := auth.NewRepository(db)
 	classRepo := class.NewRepository(db)
