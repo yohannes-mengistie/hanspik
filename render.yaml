@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: hanspik
+    runtime: go
+    buildCommand: go build -tags netgo -ldflags "-s -w" -o app ./cmd/api
+    startCommand: ./app
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: UPLOAD_DIR
+        value: uploads
