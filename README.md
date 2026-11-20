@@ -20,7 +20,22 @@ go run ./cmd/seed           # idempotent HSK 1 seed
 
 Required env vars: `DATABASE_URL`, `JWT_SECRET`. Optional: `PORT` (8084),
 `UPLOAD_DIR` (uploads), `SEED_TEACHER_EMAIL`, `SEED_TEACHER_PASSWORD`,
-`SEED_TEACHER_NAME`.
+`SEED_TEACHER_NAME`, `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD`,
+`BOOTSTRAP_ADMIN_NAME` (default `Admin`).
+
+### First admin
+
+Self-registration always creates a student, so the first admin must be
+bootstrapped. Set `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` (8–72
+characters) before starting the server; startup creates that admin or updates an
+existing account to admin with the supplied password, re-enables it, and revokes
+its old sessions. On Render, set both as service environment variables (the
+blueprint declares them as `sync: false`) and redeploy. **Remove the password
+variable after logging in if you do not want it reapplied on every deploy.**
+
+For local development you can use the seed teacher account
+(`teacher@chines.local` / `teach12345`) as the bootstrap admin by setting the
+two variables to those values.
 
 Pronunciation scoring: `SCORER=fake` (default) or `SCORER=azure`. Azure also
 needs `AZURE_SPEECH_KEY` and `AZURE_SPEECH_REGION`. The fake scorer is

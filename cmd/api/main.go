@@ -13,6 +13,7 @@ import (
 
 	"github.com/yohannes/chines-backend/internal/admin"
 	"github.com/yohannes/chines-backend/internal/auth"
+	"github.com/yohannes/chines-backend/internal/bootstrap"
 	"github.com/yohannes/chines-backend/internal/class"
 	"github.com/yohannes/chines-backend/internal/config"
 	"github.com/yohannes/chines-backend/internal/lesson"
@@ -39,6 +40,9 @@ func main() {
 	}
 	userRepo := user.NewRepository(db)
 	authRepo := auth.NewRepository(db)
+	if err := bootstrap.Admin(context.Background(), cfg, userRepo, authRepo); err != nil {
+		log.Fatalf("bootstrap admin: %v", err)
+	}
 	classRepo := class.NewRepository(db)
 	lessonRepo := lesson.NewRepository(db)
 	tokens := auth.NewTokenManager(cfg.JWTSecret, 15*time.Minute)

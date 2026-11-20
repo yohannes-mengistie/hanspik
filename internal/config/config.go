@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -15,6 +16,12 @@ type Config struct {
 	Scorer      string
 	AzureKey    string
 	AzureRegion string
+
+	// Set both to create (or repair) an admin account at startup. This is the
+	// only way to get the first admin: the admin API needs an admin token.
+	BootstrapAdminEmail    string
+	BootstrapAdminPassword string
+	BootstrapAdminName     string
 }
 
 func Load() Config {
@@ -29,6 +36,10 @@ func Load() Config {
 		Scorer:      getEnv("SCORER", "fake"),
 		AzureKey:    getEnv("AZURE_SPEECH_KEY", ""),
 		AzureRegion: getEnv("AZURE_SPEECH_REGION", ""),
+
+		BootstrapAdminEmail:    strings.TrimSpace(os.Getenv("BOOTSTRAP_ADMIN_EMAIL")),
+		BootstrapAdminPassword: os.Getenv("BOOTSTRAP_ADMIN_PASSWORD"),
+		BootstrapAdminName:     getEnv("BOOTSTRAP_ADMIN_NAME", "Admin"),
 	}
 }
 

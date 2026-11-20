@@ -93,6 +93,20 @@ func (r *Repository) List(ctx context.Context, role, q string, page, pageSize in
 	return users, total, rows.Err()
 }
 
+// SetPassword replaces a user's password hash (used by admin bootstrap and
+// password resets). Callers must hash before passing the value in.
+func (r *Repository) SetPassword(ctx context.Context, id, hash string) error {
+	tag, err := r.db.Exec(ctx,
+		`UPDATE users SET password_hash = $2, updated_at = now() WHERE id = $1`, id, hash)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
 func (r *Repository) SetRole(ctx context.Context, id string, role Role) error {
 	tag, err := r.db.Exec(ctx, `UPDATE users SET role = $2, updated_at = now() WHERE id = $1`, id, string(role))
 	if err != nil {
