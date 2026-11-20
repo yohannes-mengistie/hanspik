@@ -12,6 +12,9 @@ type Config struct {
 	DatabaseURL string
 	JWTSecret   string
 	UploadDir   string
+	Scorer      string
+	AzureKey    string
+	AzureRegion string
 }
 
 func Load() Config {
@@ -22,7 +25,10 @@ func Load() Config {
 		Port:        getEnv("PORT", "8084"),
 		DatabaseURL: mustEnv("DATABASE_URL"),
 		JWTSecret:   mustEnv("JWT_SECRET"),
-		UploadDir: getEnv("UPLOAD_DIR", "uploads"),
+		UploadDir:   getEnv("UPLOAD_DIR", "uploads"),
+		Scorer:      getEnv("SCORER", "fake"),
+		AzureKey:    getEnv("AZURE_SPEECH_KEY", ""),
+		AzureRegion: getEnv("AZURE_SPEECH_REGION", ""),
 	}
 }
 

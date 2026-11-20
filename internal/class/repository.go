@@ -6,6 +6,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/yohannes/chines-backend/internal/platform/apperr"
 	"github.com/yohannes/chines-backend/internal/user"
 )
 
@@ -17,20 +18,33 @@ func NewRepository(db *pgxpool.Pool) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) Create(ctx context.Context, name, teacherID string) (*Class, error) {
-	c := &Class{Name: name, TeacherID: teacherID}
-	err := r.db.QueryRow(ctx,
-		`INSERT INTO classes (name, teacher_id) VALUES ($1, $2) RETURNING id::text, created_at`,
-		name, teacherID).Scan(&c.ID, &c.CreatedAt)
-	if err != nil {
+// classCols is shared by every class query so the dashboard always receives the
+// teacher name and student count it renders, without a follow-up request.
+const classCols = `c.id::text, c.name, c.teacher_id::text, COALESCE(t.name, ''), COALESCE(t.role::text, ''),
+	(SELECT COUNT(*)::int FROM class_members m WHERE m.class_id = c.id), c.created_at`
+
+func scanClass(row pgx.Row) (*Class, error) {
+	var c Class
+	if err := row.Scan(&c.ID, &c.Name, &c.TeacherID, &c.TeacherName,
+		&c.TeacherRole, &c.StudentCount, &c.CreatedAt); err != nil {
 		return nil, err
 	}
-	return c, nil
+	return &c, nil
+}
+
+func (r *Repository) Create(ctx context.Context, name, teacherID string) (*Class, error) {
+	row := r.db.QueryRow(ctx, `
+		WITH c AS (
+			INSERT INTO classes (name, teacher_id) VALUES ($1, $2) RETURNING *
+		)
+		SELECT `+classCols+` FROM c JOIN users t ON t.id = c.teacher_id`,
+		name, teacherID)
+	return scanClass(row)
 }
 
 // ListFor returns the classes this user is allowed to see.
 func (r *Repository) ListFor(ctx context.Context, userID string, role user.Role) ([]Class, error) {
-	const base = `SELECT c.id::text, c.name, c.teacher_id::text, c.created_at FROM classes c `
+	const base = `SELECT ` + classCols + ` FROM classes c JOIN users t ON t.id = c.teacher_id `
 
 	var rows pgx.Rows
 	var err error
@@ -51,11 +65,11 @@ func (r *Repository) ListFor(ctx context.Context, userID string, role user.Role)
 
 	classes := []Class{} // empty slice, so JSON shows [] and not null
 	for rows.Next() {
-		var c Class
-		if err := rows.Scan(&c.ID, &c.Name, &c.TeacherID, &c.CreatedAt); err != nil {
+		c, err := scanClass(rows)
+		if err != nil {
 			return nil, err
 		}
-		classes = append(classes, c)
+		classes = append(classes, *c)
 	}
 	return classes, rows.Err()
 }
@@ -112,4 +126,78 @@ func (r *Repository) ListMembers(ctx context.Context, classID string) ([]Member,
 		members = append(members, m)
 	}
 	return members, rows.Err()
+}
+func (r *Repository) Get(ctx context.Context, classID string) (*Class, error) {
+	row := r.db.QueryRow(ctx,
+		`SELECT `+classCols+` FROM classes c JOIN users t ON t.id = c.teacher_id
+		 WHERE c.id = $1`, classID)
+	c, err := scanClass(row)
+	if err == pgx.ErrNoRows {
+		return nil, apperr.ErrNotFound
+	}
+	return c, err
+}
+
+func (r *Repository) Update(ctx context.Context, classID, name, teacherID string) (*Class, error) {
+	row := r.db.QueryRow(ctx, `
+		WITH c AS (
+			UPDATE classes SET name = $2, teacher_id = $3 WHERE id = $1 RETURNING *
+		)
+		SELECT `+classCols+` FROM c JOIN users t ON t.id = c.teacher_id`,
+		classID, name, teacherID)
+	c, err := scanClass(row)
+	if err == pgx.ErrNoRows {
+		return nil, apperr.ErrNotFound
+	}
+	return c, err
+}
+
+// Delete removes the class (lessons, words, members cascade in the DB) and
+// returns every audio URL that belonged to it so the caller can remove files.
+func (r *Repository) Delete(ctx context.Context, classID string) ([]string, error) {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	rows, err := tx.Query(ctx, `
+		SELECT w.audio_url
+		FROM words w JOIN lessons l ON l.id = w.lesson_id
+		WHERE l.class_id = $1 AND w.audio_url IS NOT NULL`, classID)
+	if err != nil {
+		return nil, err
+	}
+	urls := []string{}
+	for rows.Next() {
+		var url string
+		if err := rows.Scan(&url); err != nil {
+			rows.Close()
+			return nil, err
+		}
+		urls = append(urls, url)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	tag, err := tx.Exec(ctx, `DELETE FROM classes WHERE id = $1`, classID)
+	if err != nil {
+		return nil, err
+	}
+	if tag.RowsAffected() == 0 {
+		return nil, apperr.ErrNotFound
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+	return urls, nil
+}
+
+func (r *Repository) RemoveMember(ctx context.Context, classID, studentID string) error {
+	_, err := r.db.Exec(ctx,
+		`DELETE FROM class_members WHERE class_id = $1 AND student_id = $2`,
+		classID, studentID)
+	return err
 }

@@ -125,17 +125,24 @@ func (s *Service) AddWord(ctx context.Context, id auth.Identity, lessonID string
 		Meaning:         strings.TrimSpace(in.Meaning),
 		ExampleSentence: strings.TrimSpace(in.ExampleSentence),
 	}
-	switch {
-	case w.Hanzi == "" || utf8.RuneCountInString(w.Hanzi) > 50:
-		return nil, apperr.Validation("hanzi is required (max 50 characters)")
-	case w.Pinyin == "" || utf8.RuneCountInString(w.Pinyin) > 100:
-		return nil, apperr.Validation("pinyin is required (max 100 characters)")
-	case w.Meaning == "" || utf8.RuneCountInString(w.Meaning) > 200:
-		return nil, apperr.Validation("meaning is required (max 200 characters)")
-	case utf8.RuneCountInString(w.ExampleSentence) > 300:
-		return nil, apperr.Validation("example_sentence is too long (max 300 characters)")
+	if err := validateWord(w); err != nil {
+		return nil, err
 	}
 	return s.repo.AddWord(ctx, lessonID, w)
+}
+
+func validateWord(w Word) error {
+	switch {
+	case w.Hanzi == "" || utf8.RuneCountInString(w.Hanzi) > 50:
+		return apperr.Validation("hanzi is required (max 50 characters)")
+	case w.Pinyin == "" || utf8.RuneCountInString(w.Pinyin) > 100:
+		return apperr.Validation("pinyin is required (max 100 characters)")
+	case w.Meaning == "" || utf8.RuneCountInString(w.Meaning) > 200:
+		return apperr.Validation("meaning is required (max 200 characters)")
+	case utf8.RuneCountInString(w.ExampleSentence) > 300:
+		return apperr.Validation("example_sentence is too long (max 300 characters)")
+	}
+	return nil
 }
 
 // manageWord checks that the user may manage the class that owns this word.
@@ -211,4 +218,72 @@ func (s *Service) removeFile(ctx context.Context, url *string) {
 	if err := s.store.Delete(ctx, path.Base(*url)); err != nil {
 		log.Printf("could not delete audio file %s: %v", *url, err)
 	}
+}
+func (s *Service) UpdateLesson(ctx context.Context, id auth.Identity, lessonID, title, date string) (*Lesson, error) {
+	l, err := s.repo.GetLesson(ctx, lessonID)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.authorize(ctx, id, l.ClassID, true); err != nil {
+		return nil, err
+	}
+	title = strings.TrimSpace(title)
+	if title == "" || utf8.RuneCountInString(title) > 150 {
+		return nil, apperr.Validation("title is required (max 150 characters)")
+	}
+	d, err := time.Parse(dateLayout, date)
+	if err != nil {
+		return nil, apperr.Validation("lesson_date must look like 2026-11-14")
+	}
+	return s.repo.UpdateLesson(ctx, lessonID, title, d)
+}
+
+func (s *Service) DeleteLesson(ctx context.Context, id auth.Identity, lessonID string) error {
+	l, err := s.repo.GetLesson(ctx, lessonID)
+	if err != nil {
+		return err
+	}
+	if err := s.authorize(ctx, id, l.ClassID, true); err != nil {
+		return err
+	}
+	urls, err := s.repo.DeleteLesson(ctx, lessonID)
+	if err != nil {
+		return err
+	}
+	for _, url := range urls {
+		if err := s.store.Delete(ctx, path.Base(url)); err != nil {
+			log.Printf("could not delete audio file %s: %v", url, err)
+		}
+	}
+	return nil
+}
+
+func (s *Service) UpdateWord(ctx context.Context, id auth.Identity, wordID string, in WordInput) (*Word, error) {
+	if err := s.manageWord(ctx, id, wordID); err != nil {
+		return nil, err
+	}
+	w := Word{
+		Hanzi:           strings.TrimSpace(in.Hanzi),
+		Pinyin:          strings.TrimSpace(in.Pinyin),
+		Meaning:         strings.TrimSpace(in.Meaning),
+		ExampleSentence: strings.TrimSpace(in.ExampleSentence),
+	}
+	if err := validateWord(w); err != nil {
+		return nil, err
+	}
+	return s.repo.UpdateWord(ctx, wordID, w)
+}
+
+func (s *Service) ReorderWords(ctx context.Context, id auth.Identity, lessonID string, ids []string) error {
+	l, err := s.repo.GetLesson(ctx, lessonID)
+	if err != nil {
+		return err
+	}
+	if err := s.authorize(ctx, id, l.ClassID, true); err != nil {
+		return err
+	}
+	if len(ids) == 0 {
+		return apperr.Validation("word_ids is required")
+	}
+	return s.repo.ReorderWords(ctx, lessonID, ids)
 }

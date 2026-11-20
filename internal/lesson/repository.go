@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
@@ -143,6 +144,15 @@ func (r *Repository) ClassIDOfWord(ctx context.Context, wordID string) (string, 
 	}
 	return classID, err
 }
+func (r *Repository) GetWord(ctx context.Context, wordID string) (*Word, error) {
+	w, err := scanWord(r.db.QueryRow(ctx,
+		`SELECT `+wordCols+` FROM words WHERE id = $1`, wordID))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, apperr.ErrNotFound
+	}
+	return w, err
+}
+
 func (r *Repository) SetAudio(ctx context.Context, wordID string, url *string) (*Word, *string, error) {
 	var w Word
 	var old *string
@@ -169,4 +179,113 @@ func (r *Repository) DeleteWord(ctx context.Context, wordID string) (*string, er
 		return nil, nil
 	}
 	return audio, err
+}
+func (r *Repository) UpdateLesson(ctx context.Context, lessonID, title string, date time.Time) (*Lesson, error) {
+	row := r.db.QueryRow(ctx, `
+		WITH l AS (
+			UPDATE lessons SET title = $2, lesson_date = $3 WHERE id = $1 RETURNING *
+		)
+		SELECT `+lessonCols+` FROM l`, lessonID, title, date)
+	l, err := scanLesson(row)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, apperr.ErrNotFound
+	}
+	return l, err
+}
+
+// DeleteLesson removes the lesson and its words (cascade) and returns the
+// audio URLs that no longer have a row, so files can be deleted too.
+func (r *Repository) DeleteLesson(ctx context.Context, lessonID string) ([]string, error) {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	urls, err := lessonAudioURLs(ctx, tx, lessonID)
+	if err != nil {
+		return nil, err
+	}
+	tag, err := tx.Exec(ctx, `DELETE FROM lessons WHERE id = $1`, lessonID)
+	if err != nil {
+		return nil, err
+	}
+	if tag.RowsAffected() == 0 {
+		return nil, apperr.ErrNotFound
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+	return urls, nil
+}
+
+func lessonAudioURLs(ctx context.Context, tx pgx.Tx, lessonID string) ([]string, error) {
+	rows, err := tx.Query(ctx,
+		`SELECT audio_url FROM words WHERE lesson_id = $1 AND audio_url IS NOT NULL`, lessonID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	urls := []string{}
+	for rows.Next() {
+		var url string
+		if err := rows.Scan(&url); err != nil {
+			return nil, err
+		}
+		urls = append(urls, url)
+	}
+	return urls, rows.Err()
+}
+
+func (r *Repository) UpdateWord(ctx context.Context, wordID string, w Word) (*Word, error) {
+	row := r.db.QueryRow(ctx, `
+		UPDATE words SET hanzi = $2, pinyin = $3, meaning = $4, example_sentence = $5
+		WHERE id = $1
+		RETURNING `+wordCols,
+		wordID, w.Hanzi, w.Pinyin, w.Meaning, w.ExampleSentence)
+	word, err := scanWord(row)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, apperr.ErrNotFound
+	}
+	return word, err
+}
+
+// ReorderWords sets position = 1..n in the given order. All ids must be the
+// complete set of words in the lesson, with no duplicates.
+func (r *Repository) ReorderWords(ctx context.Context, lessonID string, ids []string) error {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	var total int
+	if err := tx.QueryRow(ctx,
+		`SELECT COUNT(*) FROM words WHERE lesson_id = $1`, lessonID).Scan(&total); err != nil {
+		return err
+	}
+	if total != len(ids) {
+		return apperr.Validation("word_ids must contain every word in the lesson exactly once")
+	}
+
+	seen := make(map[string]bool, len(ids))
+	for i, id := range ids {
+		if seen[id] {
+			return apperr.Validation("word_ids contains a duplicate")
+		}
+		seen[id] = true
+		if _, err := uuid.Parse(id); err != nil {
+			return apperr.Validation("word_ids contains an invalid id")
+		}
+		tag, err := tx.Exec(ctx,
+			`UPDATE words SET position = $3 WHERE id = $1 AND lesson_id = $2`,
+			id, lessonID, i+1)
+		if err != nil {
+			return err
+		}
+		if tag.RowsAffected() == 0 {
+			return apperr.Validation("word_ids contains a word from another lesson")
+		}
+	}
+	return tx.Commit(ctx)
 }

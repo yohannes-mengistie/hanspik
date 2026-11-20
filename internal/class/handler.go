@@ -18,14 +18,15 @@ func NewHandler(svc *Service) *Handler {
 
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		Name string `json:"name"`
+		Name      string `json:"name"`
+		TeacherID string `json:"teacher_id"`
 	}
 	if err := httpx.Decode(w, r, &req); err != nil {
 		httpx.Error(w, http.StatusBadRequest, "invalid JSON body")
 		return
 	}
 	id, _ := auth.IdentityFrom(r.Context())
-	c, err := h.svc.Create(r.Context(), id, req.Name)
+	c, err := h.svc.Create(r.Context(), id, req.Name, req.TeacherID)
 	if err != nil {
 		apperr.Write(w, err)
 		return
@@ -76,4 +77,55 @@ func (h *Handler) AddStudent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	httpx.JSON(w, http.StatusCreated, m)
+}
+func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
+	classID, ok := httpx.PathID(w, r, "id")
+	if !ok {
+		return
+	}
+	var req struct {
+		Name      *string `json:"name"`
+		TeacherID *string `json:"teacher_id"`
+	}
+	if err := httpx.Decode(w, r, &req); err != nil {
+		httpx.Error(w, http.StatusBadRequest, "invalid JSON body")
+		return
+	}
+	id, _ := auth.IdentityFrom(r.Context())
+	c, err := h.svc.Update(r.Context(), id, classID, req.Name, req.TeacherID)
+	if err != nil {
+		apperr.Write(w, err)
+		return
+	}
+	httpx.JSON(w, http.StatusOK, c)
+}
+
+func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	classID, ok := httpx.PathID(w, r, "id")
+	if !ok {
+		return
+	}
+	id, _ := auth.IdentityFrom(r.Context())
+	if err := h.svc.Delete(r.Context(), id, classID); err != nil {
+		apperr.Write(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Handler) RemoveStudent(w http.ResponseWriter, r *http.Request) {
+	classID, ok := httpx.PathID(w, r, "id")
+	if !ok {
+		return
+	}
+	studentID, ok := httpx.PathID(w, r, "studentId")
+	if !ok {
+		return
+	}
+	id, _ := auth.IdentityFrom(r.Context())
+	if err := h.svc.RemoveStudent(r.Context(), id, classID, studentID); err != nil {
+		apperr.Write(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }

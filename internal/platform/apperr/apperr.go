@@ -2,9 +2,9 @@ package apperr
 
 import (
 	"errors"
+	"github.com/yohannes/chines-backend/internal/platform/httpx"
 	"log"
 	"net/http"
-	"github.com/yohannes/chines-backend/internal/platform/httpx"
 )
 
 var ErrNotFound = errors.New("not found")

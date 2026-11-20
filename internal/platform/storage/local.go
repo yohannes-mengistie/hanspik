@@ -43,6 +43,12 @@ func (l *Local) Save(ctx context.Context, name string, r io.Reader) error {
 	return os.Rename(tmp.Name(), filepath.Join(l.dir, filepath.Base(name)))
 }
 
+// Open returns a private file for authenticated streaming. Callers must
+// validate the name themselves; name is reduced to its base to block traversal.
+func (l *Local) Open(ctx context.Context, name string) (io.ReadCloser, error) {
+	return os.Open(filepath.Join(l.dir, filepath.Base(name)))
+}
+
 func (l *Local) Delete(ctx context.Context, name string) error {
 	err := os.Remove(filepath.Join(l.dir, filepath.Base(name)))
 	if errors.Is(err, os.ErrNotExist) {

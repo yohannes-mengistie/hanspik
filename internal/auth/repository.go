@@ -66,3 +66,13 @@ func (r *Repository) Revoke(ctx context.Context, tokenHash string) error {
 		tokenHash)
 	return err
 }
+
+// RevokeAllForUser signs a user out of every device. Used when a user is
+// disabled or has their role changed, so the next refresh cannot restore an
+// old privilege.
+func (r *Repository) RevokeAllForUser(ctx context.Context, userID string) error {
+	_, err := r.db.Exec(ctx,
+		`UPDATE refresh_tokens SET revoked_at = now()
+		 WHERE user_id = $1 AND revoked_at IS NULL`, userID)
+	return err
+}

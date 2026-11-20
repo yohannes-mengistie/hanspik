@@ -1,0 +1,107 @@
+{
+  "class": { "name": "HSK 1" },
+  "lessons": [
+    {
+      "slug": "meet",
+      "index": 1,
+      "title": "First meeting",
+      "title_zh": "见面",
+      "summary": "The six words that open almost every conversation.",
+      "seal": "见",
+      "words": [
+        { "slug": "nihao", "hanzi": "你好", "pinyin": "nǐ hǎo", "meaning": "hello", "example_sentence": "你好，老师。", "example_pinyin": "nǐ hǎo, lǎo shī", "example_meaning": "Hello, teacher." },
+        { "slug": "xiexie", "hanzi": "谢谢", "pinyin": "xiè xie", "meaning": "thank you", "example_sentence": "谢谢你。", "example_pinyin": "xiè xie nǐ", "example_meaning": "Thank you." },
+        { "slug": "zaijian", "hanzi": "再见", "pinyin": "zài jiàn", "meaning": "goodbye", "example_sentence": "老师，再见。", "example_pinyin": "lǎo shī, zài jiàn", "example_meaning": "Goodbye, teacher." },
+        { "slug": "qing", "hanzi": "请", "pinyin": "qǐng", "meaning": "please", "example_sentence": "请进。", "example_pinyin": "qǐng jìn", "example_meaning": "Please come in." },
+        { "slug": "duibuqi", "hanzi": "对不起", "pinyin": "duì bu qǐ", "meaning": "sorry", "example_sentence": "对不起。", "example_pinyin": "duì bu qǐ", "example_meaning": "Sorry." },
+        { "slug": "meiguanxi", "hanzi": "没关系", "pinyin": "méi guān xi", "meaning": "it's all right", "example_sentence": "没关系。", "example_pinyin": "méi guān xi", "example_meaning": "It's all right." }
+      ]
+    },
+    {
+      "slug": "who",
+      "index": 2,
+      "title": "Who I am",
+      "title_zh": "我是谁",
+      "summary": "Names, pronouns, and the verb that holds a sentence up.",
+      "seal": "我",
+      "words": [
+        { "slug": "wo", "hanzi": "我", "pinyin": "wǒ", "meaning": "I, me", "example_sentence": "我是学生。", "example_pinyin": "wǒ shì xué shēng", "example_meaning": "I am a student." },
+        { "slug": "ni", "hanzi": "你", "pinyin": "nǐ", "meaning": "you", "example_sentence": "你好吗？", "example_pinyin": "nǐ hǎo ma", "example_meaning": "How are you?" },
+        { "slug": "ta-he", "hanzi": "他", "pinyin": "tā", "meaning": "he, him", "example_sentence": "他是老师。", "example_pinyin": "tā shì lǎo shī", "example_meaning": "He is a teacher." },
+        { "slug": "ta-she", "hanzi": "她", "pinyin": "tā", "meaning": "she, her", "example_sentence": "她是学生。", "example_pinyin": "tā shì xué shēng", "example_meaning": "She is a student." },
+        { "slug": "shi", "hanzi": "是", "pinyin": "shì", "meaning": "to be", "example_sentence": "我是老师。", "example_pinyin": "wǒ shì lǎo shī", "example_meaning": "I am a teacher." },
+        { "slug": "jiao", "hanzi": "叫", "pinyin": "jiào", "meaning": "to be called", "example_sentence": "我叫安安。", "example_pinyin": "wǒ jiào ān ān", "example_meaning": "My name is Anan." },
+        { "slug": "xuesheng", "hanzi": "学生", "pinyin": "xué shēng", "meaning": "student", "example_sentence": "你是学生吗？", "example_pinyin": "nǐ shì xué shēng ma", "example_meaning": "Are you a student?" },
+        { "slug": "laoshi", "hanzi": "老师", "pinyin": "lǎo shī", "meaning": "teacher", "example_sentence": "她是老师。", "example_pinyin": "tā shì lǎo shī", "example_meaning": "She is a teacher." }
+      ]
+    },
+    {
+      "slug": "numbers",
+      "index": 3,
+      "title": "One to ten",
+      "title_zh": "数字",
+      "summary": "Count people, days, and cups of tea.",
+      "seal": "十",
+      "words": [
+        { "slug": "yi", "hanzi": "一", "pinyin": "yī", "meaning": "one", "example_sentence": "一个学生。", "example_pinyin": "yī gè xué shēng", "example_meaning": "One student." },
+        { "slug": "er", "hanzi": "二", "pinyin": "èr", "meaning": "two", "example_sentence": "一、二、三。", "example_pinyin": "yī, èr, sān", "example_meaning": "One, two, three." },
+        { "slug": "san", "hanzi": "三", "pinyin": "sān", "meaning": "three", "example_sentence": "三个学生。", "example_pinyin": "sān gè xué shēng", "example_meaning": "Three students." },
+        { "slug": "si", "hanzi": "四", "pinyin": "sì", "meaning": "four", "example_sentence": "四个。", "example_pinyin": "sì gè", "example_meaning": "Four." },
+        { "slug": "wu", "hanzi": "五", "pinyin": "wǔ", "meaning": "five", "example_sentence": "五个。", "example_pinyin": "wǔ gè", "example_meaning": "Five." },
+        { "slug": "liu", "hanzi": "六", "pinyin": "liù", "meaning": "six", "example_sentence": "六个学生。", "example_pinyin": "liù gè xué shēng", "example_meaning": "Six students." },
+        { "slug": "qi", "hanzi": "七", "pinyin": "qī", "meaning": "seven", "example_sentence": "七个。", "example_pinyin": "qī gè", "example_meaning": "Seven." },
+        { "slug": "ba", "hanzi": "八", "pinyin": "bā", "meaning": "eight", "example_sentence": "八个。", "example_pinyin": "bā gè", "example_meaning": "Eight." },
+        { "slug": "jiu", "hanzi": "九", "pinyin": "jiǔ", "meaning": "nine", "example_sentence": "九个。", "example_pinyin": "jiǔ gè", "example_meaning": "Nine." },
+        { "slug": "shi", "hanzi": "十", "pinyin": "shí", "meaning": "ten", "example_sentence": "十个学生。", "example_pinyin": "shí gè xué shēng", "example_meaning": "Ten students." }
+      ]
+    },
+    {
+      "slug": "days",
+      "index": 4,
+      "title": "Today",
+      "title_zh": "日子",
+      "summary": "Put a time on the sentence you already know.",
+      "seal": "今",
+      "words": [
+        { "slug": "jintian", "hanzi": "今天", "pinyin": "jīn tiān", "meaning": "today", "example_sentence": "今天我是学生。", "example_pinyin": "jīn tiān wǒ shì xué shēng", "example_meaning": "Today I am a student." },
+        { "slug": "mingtian", "hanzi": "明天", "pinyin": "míng tiān", "meaning": "tomorrow", "example_sentence": "明天见。", "example_pinyin": "míng tiān jiàn", "example_meaning": "See you tomorrow." },
+        { "slug": "zuotian", "hanzi": "昨天", "pinyin": "zuó tiān", "meaning": "yesterday", "example_sentence": "昨天谢谢你。", "example_pinyin": "zuó tiān xiè xie nǐ", "example_meaning": "Thank you for yesterday." },
+        { "slug": "xianzai", "hanzi": "现在", "pinyin": "xiàn zài", "meaning": "now", "example_sentence": "现在请。", "example_pinyin": "xiàn zài qǐng", "example_meaning": "Please, now." },
+        { "slug": "zaoshang", "hanzi": "早上", "pinyin": "zǎo shang", "meaning": "morning", "example_sentence": "早上好。", "example_pinyin": "zǎo shang hǎo", "example_meaning": "Good morning." },
+        { "slug": "wanshang", "hanzi": "晚上", "pinyin": "wǎn shang", "meaning": "evening", "example_sentence": "晚上好。", "example_pinyin": "wǎn shang hǎo", "example_meaning": "Good evening." }
+      ]
+    },
+    {
+      "slug": "table",
+      "index": 5,
+      "title": "At the table",
+      "title_zh": "吃饭",
+      "summary": "Order, drink, and say when something is good.",
+      "seal": "茶",
+      "words": [
+        { "slug": "chi", "hanzi": "吃", "pinyin": "chī", "meaning": "to eat", "example_sentence": "我吃米饭。", "example_pinyin": "wǒ chī mǐ fàn", "example_meaning": "I eat rice." },
+        { "slug": "he", "hanzi": "喝", "pinyin": "hē", "meaning": "to drink", "example_sentence": "请喝茶。", "example_pinyin": "qǐng hē chá", "example_meaning": "Please drink tea." },
+        { "slug": "shui", "hanzi": "水", "pinyin": "shuǐ", "meaning": "water", "example_sentence": "我喝水。", "example_pinyin": "wǒ hē shuǐ", "example_meaning": "I drink water." },
+        { "slug": "cha", "hanzi": "茶", "pinyin": "chá", "meaning": "tea", "example_sentence": "她喝茶。", "example_pinyin": "tā hē chá", "example_meaning": "She drinks tea." },
+        { "slug": "mifan", "hanzi": "米饭", "pinyin": "mǐ fàn", "meaning": "cooked rice", "example_sentence": "米饭好吃。", "example_pinyin": "mǐ fàn hǎo chī", "example_meaning": "The rice is delicious." },
+        { "slug": "haochi", "hanzi": "好吃", "pinyin": "hǎo chī", "meaning": "delicious", "example_sentence": "米饭很好吃。", "example_pinyin": "mǐ fàn hěn hǎo chī", "example_meaning": "The rice is delicious." }
+      ]
+    },
+    {
+      "slug": "places",
+      "index": 6,
+      "title": "Getting around",
+      "title_zh": "去哪儿",
+      "summary": "Home, school, and the question that starts a plan.",
+      "seal": "去",
+      "words": [
+        { "slug": "qu", "hanzi": "去", "pinyin": "qù", "meaning": "to go", "example_sentence": "我去学校。", "example_pinyin": "wǒ qù xué xiào", "example_meaning": "I go to school." },
+        { "slug": "lai", "hanzi": "来", "pinyin": "lái", "meaning": "to come", "example_sentence": "老师来了。", "example_pinyin": "lǎo shī lái le", "example_meaning": "The teacher has come." },
+        { "slug": "zai", "hanzi": "在", "pinyin": "zài", "meaning": "to be at", "example_sentence": "我在家。", "example_pinyin": "wǒ zài jiā", "example_meaning": "I am at home." },
+        { "slug": "jia", "hanzi": "家", "pinyin": "jiā", "meaning": "home", "example_sentence": "她在家。", "example_pinyin": "tā zài jiā", "example_meaning": "She is at home." },
+        { "slug": "xuexiao", "hanzi": "学校", "pinyin": "xué xiào", "meaning": "school", "example_sentence": "学校在哪儿？", "example_pinyin": "xué xiào zài nǎr", "example_meaning": "Where is the school?" },
+        { "slug": "nar", "hanzi": "哪儿", "pinyin": "nǎr", "meaning": "where", "example_sentence": "你去哪儿？", "example_pinyin": "nǐ qù nǎr", "example_meaning": "Where are you going?" }
+      ]
+    }
+  ]
+}

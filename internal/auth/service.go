@@ -89,6 +89,9 @@ func (s *Service) Login(ctx context.Context, email, password string) (*AuthResul
 	if err != nil {
 		return nil, err
 	}
+	if u.DisabledAt != nil {
+		return nil, ErrInvalidCredentials
+	}
 	if bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)) != nil {
 		return nil, ErrInvalidCredentials
 	}
@@ -108,6 +111,9 @@ func (s *Service) Refresh(ctx context.Context, refreshToken string) (*TokenPair,
 	u, err := s.users.GetByID(ctx, userID)
 	if err != nil {
 		return nil, err
+	}
+	if u.DisabledAt != nil {
+		return nil, ErrInvalidToken
 	}
 	return s.issue(ctx, u)
 }

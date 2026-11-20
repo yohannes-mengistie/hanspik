@@ -3,10 +3,10 @@ package lesson
 import (
 	"net/http"
 
+	"errors"
 	"github.com/yohannes/chines-backend/internal/auth"
 	"github.com/yohannes/chines-backend/internal/platform/apperr"
 	"github.com/yohannes/chines-backend/internal/platform/httpx"
-	"errors"
 )
 
 type Handler struct {
@@ -121,6 +121,7 @@ func (h *Handler) DeleteWord(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
+
 // PUT /v1/words/{id}/audio   (multipart form, field name "audio")
 func (h *Handler) UploadAudio(w http.ResponseWriter, r *http.Request) {
 	wordID, ok := httpx.PathID(w, r, "id")
@@ -170,4 +171,88 @@ func (h *Handler) DeleteAudio(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	httpx.JSON(w, http.StatusOK, word)
+}
+
+// PATCH /v1/lessons/{id}
+func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
+	lessonID, ok := httpx.PathID(w, r, "id")
+	if !ok {
+		return
+	}
+	var req struct {
+		Title      string `json:"title"`
+		LessonDate string `json:"lesson_date"`
+	}
+	if err := httpx.Decode(w, r, &req); err != nil {
+		httpx.Error(w, http.StatusBadRequest, "invalid JSON body")
+		return
+	}
+	id, _ := auth.IdentityFrom(r.Context())
+	l, err := h.svc.UpdateLesson(r.Context(), id, lessonID, req.Title, req.LessonDate)
+	if err != nil {
+		apperr.Write(w, err)
+		return
+	}
+	httpx.JSON(w, http.StatusOK, l)
+}
+
+// DELETE /v1/lessons/{id}
+func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	lessonID, ok := httpx.PathID(w, r, "id")
+	if !ok {
+		return
+	}
+	id, _ := auth.IdentityFrom(r.Context())
+	if err := h.svc.DeleteLesson(r.Context(), id, lessonID); err != nil {
+		apperr.Write(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// PATCH /v1/words/{id}
+func (h *Handler) UpdateWord(w http.ResponseWriter, r *http.Request) {
+	wordID, ok := httpx.PathID(w, r, "id")
+	if !ok {
+		return
+	}
+	var req struct {
+		Hanzi           string `json:"hanzi"`
+		Pinyin          string `json:"pinyin"`
+		Meaning         string `json:"meaning"`
+		ExampleSentence string `json:"example_sentence"`
+	}
+	if err := httpx.Decode(w, r, &req); err != nil {
+		httpx.Error(w, http.StatusBadRequest, "invalid JSON body")
+		return
+	}
+	id, _ := auth.IdentityFrom(r.Context())
+	word, err := h.svc.UpdateWord(r.Context(), id, wordID,
+		WordInput{req.Hanzi, req.Pinyin, req.Meaning, req.ExampleSentence})
+	if err != nil {
+		apperr.Write(w, err)
+		return
+	}
+	httpx.JSON(w, http.StatusOK, word)
+}
+
+// POST /v1/lessons/{id}/words/reorder
+func (h *Handler) ReorderWords(w http.ResponseWriter, r *http.Request) {
+	lessonID, ok := httpx.PathID(w, r, "id")
+	if !ok {
+		return
+	}
+	var req struct {
+		WordIDs []string `json:"word_ids"`
+	}
+	if err := httpx.Decode(w, r, &req); err != nil {
+		httpx.Error(w, http.StatusBadRequest, "invalid JSON body")
+		return
+	}
+	id, _ := auth.IdentityFrom(r.Context())
+	if err := h.svc.ReorderWords(r.Context(), id, lessonID, req.WordIDs); err != nil {
+		apperr.Write(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }

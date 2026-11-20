@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/yohannes/chines-backend/internal/admin"
 	"github.com/yohannes/chines-backend/internal/auth"
 	"github.com/yohannes/chines-backend/internal/class"
 	"github.com/yohannes/chines-backend/internal/config"
@@ -18,7 +19,9 @@ import (
 	"github.com/yohannes/chines-backend/internal/platform/database"
 	"github.com/yohannes/chines-backend/internal/platform/storage"
 	"github.com/yohannes/chines-backend/internal/practice"
+	"github.com/yohannes/chines-backend/internal/pronunciation"
 	"github.com/yohannes/chines-backend/internal/server"
+	"github.com/yohannes/chines-backend/internal/teacher"
 	"github.com/yohannes/chines-backend/internal/user"
 	"github.com/yohannes/chines-backend/migrations"
 )
@@ -40,7 +43,6 @@ func main() {
 	lessonRepo := lesson.NewRepository(db)
 	tokens := auth.NewTokenManager(cfg.JWTSecret, 15*time.Minute)
 	authSvc := auth.NewService(userRepo, authRepo, tokens, 30*24*time.Hour)
-	classSvc := class.NewService(classRepo, userRepo)
 	practiceRepo := practice.NewRepository(db)
 	practiceSvc := practice.NewService(practiceRepo, lessonRepo, classRepo)
 
@@ -48,14 +50,32 @@ func main() {
 	if err != nil {
 		log.Fatalf("storage: %v", err)
 	}
+	// Recordings are private: this directory is never served under /media.
+	privateStore, err := storage.NewLocal(filepath.Join(cfg.UploadDir, "private"))
+	if err != nil {
+		log.Fatalf("private storage: %v", err)
+	}
+	scorer, err := pronunciation.NewScorer(cfg.Scorer, cfg.AzureKey, cfg.AzureRegion)
+	if err != nil {
+		log.Fatalf("scorer: %v", err)
+	}
+	classSvc := class.NewService(classRepo, userRepo, audioStore)
 	lessonSvc := lesson.NewService(lessonRepo, classRepo, audioStore)
+	teacherSvc := teacher.NewService(teacher.NewRepository(db), classRepo)
+	pronunciationSvc := pronunciation.NewService(
+		pronunciation.NewRepository(db), lessonRepo, classRepo,
+		privateStore, scorer, pronunciation.NewLimiter(12, time.Minute))
+	adminSvc := admin.NewService(userRepo, authRepo, admin.NewRepository(db))
 
 	handlers := server.Handlers{
-		Auth:     auth.NewHandler(authSvc),
-		Class:    class.NewHandler(classSvc),
-		Lesson:   lesson.NewHandler(lessonSvc),
-		Practice: practice.NewHandler(practiceSvc),
-		Media:    audioStore.Serve,
+		Auth:          auth.NewHandler(authSvc),
+		Class:         class.NewHandler(classSvc),
+		Lesson:        lesson.NewHandler(lessonSvc),
+		Practice:      practice.NewHandler(practiceSvc),
+		Pronunciation: pronunciation.NewHandler(pronunciationSvc),
+		Teacher:       teacher.NewHandler(teacherSvc),
+		Admin:         admin.NewHandler(adminSvc),
+		Media:         audioStore.Serve,
 	}
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,

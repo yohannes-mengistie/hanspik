@@ -16,11 +16,11 @@ func TestNextSequence(t *testing.T) {
 		reps     int
 		ease     float64
 	}{
-		{4, 1, 1, 2.5},   // first success: 1 day
-		{4, 6, 2, 2.5},   // second success: 6 days
-		{4, 15, 3, 2.5},  // then interval * ease = 6 * 2.5
-		{5, 38, 4, 2.6},  // "easy" raises the ease factor (15 * 2.5 = 37.5 rounds to 38)
-		{1, 1, 0, 2.6},   // forgotten: back to 1 day, ease unchanged
+		{4, 1, 1, 2.5},  // first success: 1 day
+		{4, 6, 2, 2.5},  // second success: 6 days
+		{4, 15, 3, 2.5}, // then interval * ease = 6 * 2.5
+		{5, 38, 4, 2.6}, // "easy" raises the ease factor (15 * 2.5 = 37.5 rounds to 38)
+		{1, 1, 0, 2.6},  // forgotten: back to 1 day, ease unchanged
 	}
 
 	for i, st := range steps {

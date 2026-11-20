@@ -2,10 +2,9 @@ package httpx
 
 import (
 	"encoding/json"
-	"net/http"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	
+	"net/http"
 )
 
 func JSON(w http.ResponseWriter, status int, v any) {
